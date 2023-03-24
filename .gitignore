@@ -1,0 +1,10 @@
+# ignore specific files
+
+# ignore specific directories
+/_inputs
+
+# ignore file extension type
+
+# ignore specific file path
+
+# add an exception
