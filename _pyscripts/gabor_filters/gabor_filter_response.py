@@ -1,7 +1,10 @@
 import numpy as np
+from skimage.util import img_as_float
+import matplotlib.pyplot as plt
 
-# __all__ = ["gabor_filter", "my_custom_utils"]
-from my_custom_utils import get_gabor_filters_by_frequency
+
+from gabor_filter import get_gabor_filters_by_frequency
+
 
 class GaborFilterResponse:
     # constructor
@@ -122,3 +125,101 @@ class GaborFilterResponse:
                     self.FilteredResponse[j] = np.fft.ifftshift( np.fft.ifft2(f2_) )
 
 
+
+class GaborFilteredResponseBank:
+
+    def __init__(self):
+        self.__ListOfGaborFilterredResponses = None
+
+    @property # first decorate the getter method
+    def GaborFilteredResponseBank(self): # This getter method name is *the* name
+        return self.__ListOfGaborFilterredResponses
+    @GaborFilteredResponseBank.setter    # the property decorates with `.setter` now
+    def GaborFilteredResponseBank(self, value):   # name, e.g. "attribute", is the same
+        self.__ListOfGaborFilterredResponses = value   # the "value" name isn't special
+
+
+    def create_a_set_of_Gabor_filtered_responses(Image, GaborFilterBank, Method=0, FilterDomain=1, MaxZoom=0):  
+       
+        if FilterDomain == 1:
+            # perform the filtering
+            FilteredImage = np.fft.fft2(np.fft.ifftshift(img_as_float(Image)))
+
+            #the loop for calculating responses at all frequencies
+
+            # Get all values of frequencies from bank of Gabor filters
+            ListOfrequencies = np.zeros(len(GaborFilterBank))
+            for i in range(len(GaborFilterBank)):
+                ListOfrequencies[i] = GaborFilterBank[i].frequency
+            ListOfrequencies = np.unique(ListOfrequencies)
+            ListOfrequencies[::-1].sort()
+
+            NumberOfOrientations = np.int32(len(GaborFilterBank) / len(ListOfrequencies[::-1]))
+
+            ListOfGaborFilterredResponses = [None]*len(ListOfrequencies)
+            
+            arrMN = np.array([Image.shape[1], Image.shape[0]])
+                
+            for i in range(len(ListOfrequencies)):   
+                FrequencyValue = ListOfrequencies[i]
+                GaborFilterResponseIJ = GaborFilterResponse()
+                GaborFilterResponseIJ.filter_an_image_with_a_set_of_Gabor_filters(FilteredImage, FrequencyValue, NumberOfOrientations, arrMN)
+
+                ListOfGaborFilterredResponses[i] = GaborFilterResponseIJ
+
+        return ListOfGaborFilterredResponses
+    
+    def convert_a_set_Gabor_filtered_responses_to_ndarray(ListOfGaborFilterredResponses, normalize = 1):
+    
+        NumberOfOrientations = ListOfGaborFilterredResponses[0].FilteredResponse.shape[0]
+        NumberOfFrequencies = len(ListOfGaborFilterredResponses)
+
+        n = ListOfGaborFilterredResponses[0].FilteredResponse.shape
+
+        # handle case with responses from all points
+        if len(n) == 3:
+
+            meh = np.zeros((n[1],n[2], NumberOfFrequencies * NumberOfOrientations), dtype=np.complex_)
+        
+        for i in range(NumberOfFrequencies):
+            for u in range(NumberOfOrientations):
+                meh[:,:,i*NumberOfOrientations + u] = np.copy(ListOfGaborFilterredResponses[i].FilteredResponse[u,:,:])
+
+        if normalize > 0:
+            mehTemporary = np.copy(meh)
+            mehSub = np.einsum('kli->lik', 1.0 / np.tile(np.sqrt(np.sum(np.square(np.abs(mehTemporary)), axis=2)), [NumberOfFrequencies * NumberOfOrientations,1,1]))
+            meh = np.multiply(mehSub, mehTemporary)
+            
+        return meh
+    
+    def display_image_with_its_responses(img, meh, FigSize=(15.10)):
+    
+        NumberOfRows = meh.shape[2]
+        
+        fig, axes = plt.subplots(nrows=NumberOfRows, ncols=3, figsize=FigSize)
+        plt.gray()
+
+        fig.suptitle('Image responses for Gabor filter kernels', fontsize=12)
+
+        # Plot original images
+        for i, ax in zip(range(NumberOfRows), axes[:, 0]):
+            ax.imshow(img, cmap='Greys_r')
+            if i == 0:
+                ax.set_title("input image")
+            ax.axis('off')
+
+        for i, ax in zip(range(NumberOfRows), axes[:, 1]):
+            ax.imshow(np.real(meh[:,:,i]),cmap='Greys_r')
+            if i == 0:
+                ax.set_title("Real")
+            ax.axis('off')
+
+        for i, ax in zip(range(NumberOfRows), axes[:, 2]):
+            ax.imshow(np.imag(meh[:,:,i]),cmap='Greys_r')
+            if i == 0:
+                ax.set_title("Imaginary")
+            ax.axis('off')
+
+        fig.tight_layout()
+
+        plt.show()

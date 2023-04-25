@@ -1,7 +1,10 @@
 from scipy.special import erfcinv
-import numpy as np
-# __all__ = ["my_custom_utils"]
 
+import numpy as np
+
+import matplotlib.pyplot as plt
+
+# __all__ = ["my_custom_utils"]
 class GaborFilter:
     # constructor
     def __init__(self):
@@ -64,7 +67,7 @@ class GaborFilter:
         self.__Domain = value
         
     @staticmethod    
-    def __norminv(self, p, mu, sigma):
+    def __norminv(p, mu, sigma):
     
         x0 = np.multiply( -np.sqrt(2), (erfcinv(2 * p)) );
         x = np.multiply(sigma, x0) + mu;
@@ -96,7 +99,7 @@ class GaborFilter:
         self.max_frequency = fhigh2
     
     @staticmethod
-    def __ellipsoid_envelope_point(self, a, b, c):
+    def __ellipsoid_envelope_point(a, b, c):
 
         x = (c * (a**2)) / np.sqrt(b**2 + c**2 * a**2)
         y = b / a * np.sqrt(a**2 - x**2);
@@ -226,3 +229,151 @@ class GaborFilter:
                                             "\n\t shape on frequency domain:", self.FrequencyDomainGaborFilter.shape,             
                                             "\n\t shape on spatial domain:", self.SpatialDomainGaborFilter.shape)
     
+
+
+
+class GaborFilterBank:
+    # def __init__(self):
+    #     self.__GaborFilterBank = None
+
+    # @property # first decorate the getter method
+    # def GaborFilterBank(self): # This getter method name is *the* name
+    #     return self.__GaborFilterBank
+    # @GaborFilterBank.setter    # the property decorates with `.setter` now
+    # def GaborFilterBank(self, value):   # name, e.g. "attribute", is the same
+    #     self.__GaborFilterBank = value   # the "value" name isn't special
+
+
+    @staticmethod
+    def __solve_k(gamma, p):
+
+        x = 1.0 / (gamma * np.pi)*np.sqrt(-np.log(p));
+        k = (1 + x) / (1 - x);
+
+        return k
+
+    @staticmethod
+    def __solve_p(gamma, k):
+
+        p = np.exp(- (gamma * np.pi * (k - 1) / (k + 1))**2);
+
+        return p
+
+    @staticmethod
+    def __solve_gamma(k, p):
+
+        gamma = 1.0 / np.pi * np.sqrt(-np.log(p)) * (k + 1) / (k - 1);
+
+        return gamma
+
+    @staticmethod
+    def __solve_eta(n, p):
+
+        ua = np.pi / n / 2; # ua based on approximation
+
+        eta = 1.0 / np.pi * np.sqrt(-np.log(p)) / ua;
+
+        return eta
+
+    def __solve_filter_parameters(self, k, p, m, n):
+
+        gamma = self.__solve_gamma(k, p);
+        eta = self.__solve_eta(n, p);
+
+        return gamma, eta
+
+    def create_a_set_of_gabor_filters(self, fmax=0.327, k=np.sqrt(2), p=0.5, u=6, v=8, row=43, col=43):
+    #     row=43, col=43 # size of image
+    #     fmax = 0.327 # maximum frequency
+
+    #     k = np.sqrt(2) #frequency ratio or factor for selecting filter frequencies
+
+    #     p = 0.5 # crossing point between two consecutive filters, default 0.5
+    #     # pf = np.sqrt(0.99) #energy to include in the filters
+
+    #     u = 6 #number of frequencies
+    #     v = 8 #number of orientation
+
+        
+
+        GaborFilterBank = [None]*u*v 
+        
+        gamma, eta = self.__solve_filter_parameters(k, p, u, v) # smoothing parameters
+        
+        for i in range(0,u):
+            fu = fmax/k**i # frequency of the filter
+            for j in range(0,v):
+                theta = j/v*np.pi; # orientation of the filter 
+
+                GaborFilterIJ = GaborFilter()
+                GaborFilterIJ.frequency = fu
+                GaborFilterIJ.orientation = theta
+                GaborFilterIJ.compute_a_gabor_filter(gamma, eta, row, col) 
+
+                # GaborFilterIJ.showParameters()
+
+                GaborFilterBank[i*v+j] = GaborFilterIJ
+        
+        return GaborFilterBank
+    
+    
+    def get_Gabor_filters_by_frequency(GaborFilterBank, FrequencyValue, NumberOfOrientations):
+
+        GaborFilterSubsetByFrequency = [None]*NumberOfOrientations
+        
+        j=0
+        
+        for i in range(len(GaborFilterBank)):
+            if GaborFilterBank[i].frequency == FrequencyValue:
+                GaborFilterSubsetByFrequency[j] = GaborFilterBank[i]
+                j += 1
+                if j == NumberOfOrientations:
+                    return GaborFilterSubsetByFrequency
+                
+        return GaborFilterSubsetByFrequency
+    
+    def get_max_frequency_of_Gabor_filter_bank(GaborFilterBank):
+       
+        MaxFrequency = 0
+        
+        for i in range(len(GaborFilterBank)):
+            if GaborFilterBank[i].max_frequency > MaxFrequency:
+                MaxFrequency = GaborFilterBank[i].max_frequency
+                
+        return MaxFrequency
+    
+
+    def get_gabor_filters_by_frequency(GaborFilterBank, FrequencyValue, NumberOfOrientations):
+
+        GaborFilterSubsetByFrequency = [None]*NumberOfOrientations
+        
+        j=0
+        
+        for i in range(len(GaborFilterBank)):
+            if GaborFilterBank[i].frequency == FrequencyValue:
+                GaborFilterSubsetByFrequency[j] = GaborFilterBank[i]
+                j += 1
+                if j == NumberOfOrientations:
+                    return GaborFilterSubsetByFrequency
+                
+        return GaborFilterSubsetByFrequency
+    
+
+    def display_Gabor_filter_bank_on_spatial_domain(GaborFilterBank, NumberOfFrequencies, NumberOfOrientations, FigSize=(15.10)):
+        plt.figure(FigSize) 
+        for i in range(len(GaborFilterBank)):
+            ax = plt.subplot(NumberOfFrequencies, NumberOfOrientations, i + 1)
+            ax.imshow(np.real(GaborFilterBank[i].SpatialDomainGaborFilter),cmap='Greys_r')
+            label = str(np.real(GaborFilterBank[i].SpatialDomainGaborFilter).shape)
+            ax.set_title(label)
+            ax.axis("off")
+  
+        
+    def display_Gabor_filter_bank_on_frequency_domain(GaborFilterBank, NumberOfFrequencies, NumberOfOrientations,FigSize=(15.10) ):
+        plt.figure(FigSize) 
+        for i in range(len(GaborFilterBank)):
+            ax = plt.subplot(NumberOfFrequencies, NumberOfOrientations, i + 1)
+            ax.imshow(np.real(GaborFilterBank[i].FrequencyDomainGaborFilter),cmap='Greys_r')
+            label = str(np.real(GaborFilterBank[i].FrequencyDomainGaborFilter).shape)
+            ax.set_title(label)
+            ax.axis("off")
