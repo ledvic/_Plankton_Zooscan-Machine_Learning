@@ -2,8 +2,10 @@ import numpy as np
 from skimage.util import img_as_float
 import matplotlib.pyplot as plt
 
-
-from gabor_filter import get_gabor_filters_by_frequency
+from gabor_filters import gabor_filter
+from gabor_filters.gabor_filter import GaborFilterBank
+# from gabor_filters.gabor_filter.GaborFilterBank import get_gabor_filters_by_frequency 
+# from gabor_filters.gabor_filter.GaborFilterBank import get_gabor_filters_by_frequency 
 
 
 class GaborFilterResponse:
@@ -81,7 +83,7 @@ class GaborFilterResponse:
              
             self.frequency = FrequencyValue
 
-            GaborFilterSubsetByFrequency = get_gabor_filters_by_frequency(GaborFilterBank, FrequencyValue, NumberOfOrientations)
+            GaborFilterSubsetByFrequency = GaborFilterBank().get_gabor_filters_by_frequency(GaborFilterBank, FrequencyValue, NumberOfOrientations)
 
             # zero memory for filter responses when filtering all points with original resolution
             if self.FilterMethod == 0:
