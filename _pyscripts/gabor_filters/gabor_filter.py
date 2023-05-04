@@ -317,7 +317,7 @@ class GaborFilterBank:
         return GaborFilterBank
     
     
-    def get_Gabor_filters_by_frequency(GaborFilterBank, FrequencyValue, NumberOfOrientations):
+    def get_gabor_filters_by_frequency(self, GaborFilterBank, FrequencyValue, NumberOfOrientations):
 
         GaborFilterSubsetByFrequency = [None]*NumberOfOrientations
         
@@ -332,7 +332,7 @@ class GaborFilterBank:
                 
         return GaborFilterSubsetByFrequency
     
-    def get_max_frequency_of_Gabor_filter_bank(GaborFilterBank):
+    def get_max_frequency_of_Gabor_filter_bank(self, GaborFilterBank):
        
         MaxFrequency = 0
         
@@ -343,34 +343,20 @@ class GaborFilterBank:
         return MaxFrequency
     
 
-    def get_gabor_filters_by_frequency(GaborFilterBank, FrequencyValue, NumberOfOrientations):
-
-        GaborFilterSubsetByFrequency = [None]*NumberOfOrientations
-        
-        j=0
-        
-        for i in range(len(GaborFilterBank)):
-            if GaborFilterBank[i].frequency == FrequencyValue:
-                GaborFilterSubsetByFrequency[j] = GaborFilterBank[i]
-                j += 1
-                if j == NumberOfOrientations:
-                    return GaborFilterSubsetByFrequency
-                
-        return GaborFilterSubsetByFrequency
-    
-
-    def display_Gabor_filter_bank_on_spatial_domain(GaborFilterBank, NumberOfFrequencies, NumberOfOrientations, FigSize=(15.10)):
-        plt.figure(FigSize) 
+    def display_gabor_filter_bank_on_spatial_domain(self, GaborFilterBank, NumberOfFrequencies, NumberOfOrientations, FigSize=(15,10)):
+        plt.figure(figsize = FigSize) 
         for i in range(len(GaborFilterBank)):
             ax = plt.subplot(NumberOfFrequencies, NumberOfOrientations, i + 1)
             ax.imshow(np.real(GaborFilterBank[i].SpatialDomainGaborFilter),cmap='Greys_r')
             label = str(np.real(GaborFilterBank[i].SpatialDomainGaborFilter).shape)
             ax.set_title(label)
             ax.axis("off")
+
+        plt.show()
   
         
-    def display_Gabor_filter_bank_on_frequency_domain(GaborFilterBank, NumberOfFrequencies, NumberOfOrientations,FigSize=(15.10) ):
-        plt.figure(FigSize) 
+    def display_gabor_filter_bank_on_frequency_domain(self, GaborFilterBank, NumberOfFrequencies, NumberOfOrientations, FigSize=(15,10) ):
+        plt.figure(figsize = FigSize) 
         for i in range(len(GaborFilterBank)):
             ax = plt.subplot(NumberOfFrequencies, NumberOfOrientations, i + 1)
             ax.imshow(np.real(GaborFilterBank[i].FrequencyDomainGaborFilter),cmap='Greys_r')

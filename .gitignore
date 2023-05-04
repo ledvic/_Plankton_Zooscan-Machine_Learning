@@ -2,7 +2,7 @@
 
 # ignore specific directories
 /_inputs
-/__pyscripts/gabor_filters/__pycache__
+/_pyscripts/gabor_filters/__pycache__
 # ignore file extension type
 *.m
 # ignore specific file path

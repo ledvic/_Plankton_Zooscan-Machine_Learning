@@ -2,11 +2,8 @@ import numpy as np
 from skimage.util import img_as_float
 import matplotlib.pyplot as plt
 
-from gabor_filters import gabor_filter
-from gabor_filters.gabor_filter import GaborFilterBank
-# from gabor_filters.gabor_filter.GaborFilterBank import get_gabor_filters_by_frequency 
-# from gabor_filters.gabor_filter.GaborFilterBank import get_gabor_filters_by_frequency 
 
+from .gabor_filter import GaborFilterBank as gbb
 
 class GaborFilterResponse:
     # constructor
@@ -83,7 +80,7 @@ class GaborFilterResponse:
              
             self.frequency = FrequencyValue
 
-            GaborFilterSubsetByFrequency = GaborFilterBank().get_gabor_filters_by_frequency(GaborFilterBank, FrequencyValue, NumberOfOrientations)
+            GaborFilterSubsetByFrequency = gbb().get_gabor_filters_by_frequency(GaborFilterBank, FrequencyValue, NumberOfOrientations)
 
             # zero memory for filter responses when filtering all points with original resolution
             if self.FilterMethod == 0:
@@ -130,18 +127,18 @@ class GaborFilterResponse:
 
 class GaborFilteredResponseBank:
 
-    def __init__(self):
-        self.__ListOfGaborFilterredResponses = None
+    # def __init__(self):
+    #     self.__ListOfGaborFilterredResponses = None
 
-    @property # first decorate the getter method
-    def GaborFilteredResponseBank(self): # This getter method name is *the* name
-        return self.__ListOfGaborFilterredResponses
-    @GaborFilteredResponseBank.setter    # the property decorates with `.setter` now
-    def GaborFilteredResponseBank(self, value):   # name, e.g. "attribute", is the same
-        self.__ListOfGaborFilterredResponses = value   # the "value" name isn't special
+    # @property # first decorate the getter method
+    # def GaborFilteredResponseBank(self): # This getter method name is *the* name
+    #     return self.__ListOfGaborFilterredResponses
+    # @GaborFilteredResponseBank.setter    # the property decorates with `.setter` now
+    # def GaborFilteredResponseBank(self, value):   # name, e.g. "attribute", is the same
+    #     self.__ListOfGaborFilterredResponses = value   # the "value" name isn't special
 
 
-    def create_a_set_of_Gabor_filtered_responses(Image, GaborFilterBank, Method=0, FilterDomain=1, MaxZoom=0):  
+    def create_a_set_of_Gabor_filtered_responses(self, Image, GaborFilterBank, Method=0, FilterDomain=1, MaxZoom=0):  
        
         if FilterDomain == 1:
             # perform the filtering
@@ -165,13 +162,13 @@ class GaborFilteredResponseBank:
             for i in range(len(ListOfrequencies)):   
                 FrequencyValue = ListOfrequencies[i]
                 GaborFilterResponseIJ = GaborFilterResponse()
-                GaborFilterResponseIJ.filter_an_image_with_a_set_of_Gabor_filters(FilteredImage, FrequencyValue, NumberOfOrientations, arrMN)
+                GaborFilterResponseIJ.filter_an_image_with_a_set_of_Gabor_filters(FilteredImage, GaborFilterBank, FrequencyValue, NumberOfOrientations, arrMN)
 
                 ListOfGaborFilterredResponses[i] = GaborFilterResponseIJ
 
         return ListOfGaborFilterredResponses
     
-    def convert_a_set_Gabor_filtered_responses_to_ndarray(ListOfGaborFilterredResponses, normalize = 1):
+    def convert_a_set_Gabor_filtered_responses_to_ndarray(self, ListOfGaborFilterredResponses, normalize = 1):
     
         NumberOfOrientations = ListOfGaborFilterredResponses[0].FilteredResponse.shape[0]
         NumberOfFrequencies = len(ListOfGaborFilterredResponses)
@@ -194,34 +191,42 @@ class GaborFilteredResponseBank:
             
         return meh
     
-    def display_image_with_its_responses(img, meh, FigSize=(15.10)):
+    def display_image_with_its_responses(self, img, meh, NumberOfRows=8, FigSize=(15,10)):
     
-        NumberOfRows = meh.shape[2]
+        NumberOfRows = NumberOfRows
         
-        fig, axes = plt.subplots(nrows=NumberOfRows, ncols=3, figsize=FigSize)
+        fig, axes = plt.subplots(nrows=NumberOfRows, ncols=3, figsize=FigSize, layout="compressed")
         plt.gray()
 
         fig.suptitle('Image responses for Gabor filter kernels', fontsize=12)
 
         # Plot original images
         for i, ax in zip(range(NumberOfRows), axes[:, 0]):
-            ax.imshow(img, cmap='Greys_r')
+            ax.axis('off')
             if i == 0:
                 ax.set_title("input image")
-            ax.axis('off')
+            if i == np.floor(NumberOfRows/2):
+                ax.imshow(img, cmap='Greys_r')
+                ax.axis('on')
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
 
+            # ax.axis('off')
+            
+            # ax.yticks([])
+            
+        # Plot real part
         for i, ax in zip(range(NumberOfRows), axes[:, 1]):
             ax.imshow(np.real(meh[:,:,i]),cmap='Greys_r')
             if i == 0:
                 ax.set_title("Real")
             ax.axis('off')
 
+        # Plot imaginary part
         for i, ax in zip(range(NumberOfRows), axes[:, 2]):
             ax.imshow(np.imag(meh[:,:,i]),cmap='Greys_r')
             if i == 0:
                 ax.set_title("Imaginary")
             ax.axis('off')
 
-        fig.tight_layout()
-
-        plt.show()
+        fig.show()
