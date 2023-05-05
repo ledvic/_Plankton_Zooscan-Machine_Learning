@@ -282,7 +282,7 @@ class GaborFilterBank:
 
         return gamma, eta
 
-    def create_a_set_of_gabor_filters(self, fmax=0.327, k=np.sqrt(2), p=0.5, u=6, v=8, row=43, col=43):
+    def create_a_set_of_gabor_filters(self, fmax=0.327, k=np.sqrt(2), p=0.5, u=6, v=8, row=43, col=43, gamma=0, eta=0):
     #     row=43, col=43 # size of image
     #     fmax = 0.327 # maximum frequency
 
@@ -294,11 +294,13 @@ class GaborFilterBank:
     #     u = 6 #number of frequencies
     #     v = 8 #number of orientation
 
-        
-
         GaborFilterBank = [None]*u*v 
+
+        gamma = gamma
+        eta = eta
         
-        gamma, eta = self.__solve_filter_parameters(k, p, u, v) # smoothing parameters
+        if gamma == 0 and eta == 0:
+            gamma, eta = self.__solve_filter_parameters(k, p, u, v) # smoothing parameters
         
         for i in range(0,u):
             fu = fmax/k**i # frequency of the filter
