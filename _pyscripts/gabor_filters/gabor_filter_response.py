@@ -188,11 +188,17 @@ class GaborFilteredResponseBank:
         #     mehTemporary = np.copy(meh)
         #     mehSub = np.einsum('kli->lik', 1.0 / np.tile(np.sqrt(np.sum(np.square(np.abs(mehTemporary)), axis=2)), [NumberOfFrequencies * NumberOfOrientations,1,1]))
         #     meh = np.multiply(mehSub, mehTemporary)
+
+        # if normalize > 0:
+        #     mehSub = np.einsum('kli->lik', 1.0 / np.tile(np.sqrt(np.sum(np.square(np.abs(meh)), axis=2)), [NumberOfFrequencies * NumberOfOrientations,1,1]))
+        #     meh *= mehSub
+
         if normalize > 0:
             meh = np.ascontiguousarray(meh)
             norms = np.sqrt(np.sum(np.square(np.abs(meh)), axis=2))
-            for i in range(NumberOfFrequencies*NumberOfOrientations):
-                meh[:,:,i] /= norms            
+            for i in range(NumberOfFrequencies * NumberOfOrientations):
+                meh[:,:,i] /= norms
+
         return meh
     
     def display_image_with_its_responses(self, img, meh, NumberOfRows=8, FigSize=(15,10)):
