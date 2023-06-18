@@ -4,6 +4,7 @@
 /_inputs
 /_pyscripts/gabor_filters/__pycache__
 /stash
+/_outputs
 # ignore file extension type
 *.m
 # ignore specific file path
