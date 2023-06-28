@@ -4,7 +4,9 @@
 /_inputs
 /_pyscripts/gabor_filters/__pycache__
 /stash
+/_pyscripts/_testing_scripts
 /_outputs
+/.ipynb_checkpoints
 # ignore file extension type
 *.m
 # ignore specific file path
